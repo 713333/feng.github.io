@@ -1,26 +1,9 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { Menu, X, User, LogOut, Home, Book, Code, FileText, Trophy, UserCircle } from 'lucide-react';
+import { Outlet, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Menu, X, Home, Book, Code, FileText, Trophy } from 'lucide-react';
 
 const Layout = () => {
-  const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    checkUser();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    navigate('/login');
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -55,26 +38,7 @@ const Layout = () => {
               <span className="ml-1">成就</span>
             </Link>
             
-            {user ? (
-              <div className="relative group">
-                <button className="flex items-center gap-2 hover:text-orange-400 transition-colors">
-                  <UserCircle className="h-5 w-5" />
-                  <span>{user.email.split('@')[0]}</span>
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg py-2 z-10 hidden group-hover:block">
-                  <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">个人中心</Link>
-                  <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
-                    <span>退出登录</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-4">
-                <Link to="/login" className="hover:text-orange-400 transition-colors">登录</Link>
-                <Link to="/register" className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-md transition-colors">注册</Link>
-              </div>
-            )}
+
           </nav>
           
           {/* 移动端菜单按钮 */}
@@ -95,20 +59,6 @@ const Layout = () => {
               <Link to="/practice" className="py-2 hover:text-orange-400 transition-colors">练习</Link>
               <Link to="/assessment" className="py-2 hover:text-orange-400 transition-colors">测评</Link>
               <Link to="/achievements" className="py-2 hover:text-orange-400 transition-colors">成就</Link>
-              {user ? (
-                <>
-                  <Link to="/profile" className="py-2 hover:text-orange-400 transition-colors">个人中心</Link>
-                  <button onClick={handleLogout} className="py-2 text-left hover:text-orange-400 transition-colors flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
-                    <span>退出登录</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" className="py-2 hover:text-orange-400 transition-colors">登录</Link>
-                  <Link to="/register" className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-md transition-colors text-center">注册</Link>
-                </>
-              )}
             </nav>
           </div>
         )}
