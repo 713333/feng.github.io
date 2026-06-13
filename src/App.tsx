@@ -9,6 +9,7 @@ import ProjectDetail from "@/pages/ProjectDetail";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import LearningPath from "@/pages/LearningPath";
+import PlaygroundPage from "@/pages/PlaygroundPage";
 import { useAuthStore } from "@/store/authStore";
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -44,6 +45,14 @@ export default function App() {
           element={
             <Shell>
               <LearningPath />
+            </Shell>
+          }
+        />
+        <Route
+          path="/playground"
+          element={
+            <Shell>
+              <PlaygroundPage />
             </Shell>
           }
         />

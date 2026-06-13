@@ -20,11 +20,12 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-        <NavLink to="/" end className={navClass}>首页</NavLink>
-        <NavLink to="/learning-path" className={navClass}>学习路径</NavLink>
-        <NavLink to="/projects" className={navClass}>所有项目</NavLink>
-        {user && <NavLink to="/dashboard" className={navClass}>学习中心</NavLink>}
-      </nav>
+          <NavLink to="/" end className={navClass}>首页</NavLink>
+          <NavLink to="/learning-path" className={navClass}>学习路径</NavLink>
+          <NavLink to="/projects" className={navClass}>所有项目</NavLink>
+          <NavLink to="/playground" className={navClass}>在线代码</NavLink>
+          {user && <NavLink to="/dashboard" className={navClass}>学习中心</NavLink>}
+        </nav>
 
         <div className="flex items-center gap-2">
           {user ? (
@@ -57,6 +58,7 @@ export default function Navbar() {
           <NavLink to="/" end className={navClassMobile}>首页</NavLink>
           <NavLink to="/learning-path" className={navClassMobile}>路径</NavLink>
           <NavLink to="/projects" className={navClassMobile}>项目</NavLink>
+          <NavLink to="/playground" className={navClassMobile}>代码</NavLink>
           <NavLink to="/dashboard" className={navClassMobile}>我的</NavLink>
         </div>
       )}
@@ -65,6 +67,7 @@ export default function Navbar() {
           <NavLink to="/" end className={navClassMobile}>首页</NavLink>
           <NavLink to="/learning-path" className={navClassMobile}>路径</NavLink>
           <NavLink to="/projects" className={navClassMobile}>项目</NavLink>
+          <NavLink to="/playground" className={navClassMobile}>代码</NavLink>
           <NavLink to="/login" className={navClassMobile}>登录</NavLink>
         </div>
       )}

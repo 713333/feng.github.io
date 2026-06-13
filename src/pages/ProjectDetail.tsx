@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Download, ExternalLink, ListChecks, Star } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, ListChecks, Star, Sparkles, Terminal } from "lucide-react";
 import { getProject } from "../data/projects";
+import { DATASETS } from "../data/datasets";
 import StepTimeline from "../components/StepTimeline";
 import { useAuthStore } from "../store/authStore";
 import CodeBlock from "../components/CodeBlock";
+import Playground from "../components/Playground";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -158,6 +160,34 @@ export default function ProjectDetail() {
           project={project}
           activeStepId={activeStepId || project.steps[0].id}
           onSelect={setActiveStepId}
+        />
+      </section>
+
+      {/* 在线 Python 编辑器（Pyodide） */}
+      <section className="mt-12">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-amber2-500/10 px-3 py-1 text-[11px] font-semibold text-amber2-700">
+              <Terminal className="h-3.5 w-3.5" />
+              直接在浏览器运行 Python
+            </div>
+            <h2 className="font-serif text-2xl text-ink-900 md:text-3xl">
+              在线代码编辑器
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-ink-500">
+              用 Pyodide 在浏览器中直接运行 Python + pandas。数据集已按项目预置好，
+              无需安装，运行结果直接展示。
+            </p>
+          </div>
+          <Link to="/playground" className="text-xs font-semibold text-ink-500 hover:text-ink-900">
+            → 打开独立编辑器 →
+          </Link>
+        </div>
+        <Playground
+          initialCode={DATASETS[project.id]?.initialCode}
+          setupCode={DATASETS[project.id]?.setupCode}
+          title={project.title}
+          height={380}
         />
       </section>
 
