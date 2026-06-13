@@ -571,45 +571,88 @@ export default function Playground({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCode]);
 
-  // --- Pyodide 懒加载 ---
+  // --- Pyodide 懒加载（组件挂载即开始预加载） ---
   async function ensurePyodide(): Promise<any> {
     if (window.pyodide) return window.pyodide;
-    setRuntimeStatus("loading");
 
-    await new Promise<void>((resolve, reject) => {
-      if ((window as any).loadPyodide) return resolve();
-      const s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js";
-      s.async = true;
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error("Pyodide 脚本加载失败"));
-      document.head.appendChild(s);
-    });
-
-    const py = await (window as any).loadPyodide({
-      indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/",
-      stdout: (text: string) => {
-        stdoutRef.current.push(text);
-      },
-      stderr: (text: string) => {
-        stderrRef.current.push(text);
-      },
-    });
-
-    await py.loadPackage(["micropip", "numpy", "pandas"]);
-
-    try {
-      const micropip = py.pyimport("micropip");
-      await micropip.install("openpyxl");
-    } catch {
-      // ignore
+    // 避免并发多次加载
+    if ((window as any).__pyodideLoading) {
+      return (window as any).__pyodideLoading;
     }
 
-    window.pyodide = py;
-    setRuntimeStatus("ready");
-    setPyVersion(py.runPython("import sys; sys.version.split()[0]") as string);
-    return py;
+    setRuntimeStatus("loading");
+    const loadPromise = (async () => {
+      await new Promise<void>((resolve, reject) => {
+        if ((window as any).loadPyodide) return resolve();
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js";
+        s.async = true;
+        s.onload = () => resolve();
+        s.onerror = () => {
+          reject(
+            new Error(
+              "Pyodide 脚本加载失败（网络/CDN 可能被阻断，请检查网络或稍后重试）"
+            )
+          );
+        };
+        document.head.appendChild(s);
+      });
+
+      const py = await (window as any).loadPyodide({
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/",
+        stdout: (text: string) => {
+          stdoutRef.current.push(text);
+        },
+        stderr: (text: string) => {
+          stderrRef.current.push(text);
+        },
+      });
+
+      await py.loadPackage(["micropip", "numpy", "pandas"]);
+
+      // 预安装 openpyxl（解析 xlsx 上传需要）
+      try {
+        const micropip = py.pyimport("micropip");
+        await micropip.install("openpyxl");
+      } catch {
+          // 不致命：用户真要解析 xlsx 时会再尝试
+        }
+
+      window.pyodide = py;
+      setRuntimeStatus("ready");
+      setPyVersion(
+        (py.runPython("import sys; sys.version.split()[0]") as string) ||
+          "3.x"
+      );
+      return py;
+    })();
+
+    (window as any).__pyodideLoading = loadPromise;
+    loadPromise.finally(() => {
+      (window as any).__pyodideLoading = null;
+    });
+    return loadPromise;
   }
+
+  // 组件挂载即开始预加载 Pyodide（不阻塞渲染）
+  useEffect(() => {
+    const t = setTimeout(() => {
+      ensurePyodide().catch((err) => {
+        setOutputs((prev) => [
+          ...prev,
+          {
+            type: "error",
+            content:
+              "[提示] Python 运行时预加载失败：" +
+              (err?.message || String(err)) +
+              "\n你可以先编辑代码，点「▶ 运行」时会再次尝试。",
+          },
+        ]);
+      });
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Python helper
   const htmlHelper = useMemo(
